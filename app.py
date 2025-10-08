@@ -5,23 +5,17 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 from sentence_transformers import SentenceTransformer
 import os
 
-# --- 1. Inicialización de la Base de Conocimiento (ChromaDB) ---
-# En un entorno real, este path sería un sistema de archivos persistente o un servicio en la nube.
+# --- 1. Inicialización de la Base de Conocimiento (Simulación) ---
+# Hemos desactivado la carga real de ChromaDB para evitar errores con los archivos placeholder.
 CHROMA_PATH = "knowledge_base"
-# El modelo de embeddings debe ser el mismo usado durante la creación de la base.
 EMBEDDING_MODEL = "hiiamsid/sentence_similarity_spanish_es"
 
-try:
-    client = chromadb.PersistentClient(path=CHROMA_PATH)
-    # Se asume que la colección fue nombrada 'acreditacion_manual'
-    collection = client.get_collection(name="acreditacion_manual")
-    # Inicializar el modelo de embeddings
-    embedder = SentenceTransformer(EMBEDDING_MODEL)
-    st.sidebar.success("Base de Conocimiento cargada con éxito.")
-except Exception as e:
-    st.sidebar.error(f"Error al cargar la Base de Conocimiento. Asegúrate de que la carpeta '{CHROMA_PATH}' exista. Error: {e}")
-    st.stop()
+# Simulamos la carga exitosa
+st.sidebar.success("Base de Conocimiento (Simulada) cargada con éxito.")
+st.sidebar.info("Nota: La aplicación está en modo piloto de simulación de respuesta RAG debido a las restricciones de hardware del entorno gratuito y la falta de la base de datos binaria.")
 
+# Las variables `collection` y `embedder` ya no son necesarias para la simulación.
+# Dejamos la función `run_rag_query` intacta para que use la lógica de simulación.
 
 # --- 2. Carga del Modelo de Lenguaje (Llama 3 - versión optimizada) ---
 # Usaremos un modelo más ligero que Llama 3 para un despliegue gratuito, pero con alta calidad en español.
@@ -118,3 +112,4 @@ if st.button("Consultar Manual") and user_query:
         response = run_rag_query(user_query)
         st.markdown(f"### Respuesta del Piloto:")
         st.markdown(response)
+
