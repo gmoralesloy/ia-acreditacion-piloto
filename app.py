@@ -40,61 +40,63 @@ según el manual de 42 páginas.
 
 # --- 4. Función RAG (Recuperación y Generación) ---
 def run_rag_query(query: str):
-    # a) Recuperación (Retrieval)
-    # Convertir la consulta del usuario a un vector
-    query_vector = embedder.encode(query).tolist()
-    
-    # Buscar los fragmentos más relevantes en ChromaDB
-    results = collection.query(
-        query_embeddings=[query_vector],
-        n_results=3,  # Obtener los 3 fragmentos más relevantes
-        include=['documents', 'distances']
-    )
-    
-    # Extraer el contexto de los documentos recuperados
-    context = "\n---\n".join(results['documents'][0])
-    
-    # b) Generación (Generation)
-    # El prompt que le enviamos al LLM (Llama 3)
-    prompt_template = f"""
-    Eres un asistente experto en el proceso de Acreditación de Empresas Colaboradoras (EECC) y trabajadores para Minera Los Pelambres (MLP).
-    Tu única fuente de información es el CONTEXTO proporcionado a continuación.
-    
-    1. Responde a la pregunta del usuario de manera concisa y profesional, basándote *estrictamente* en el CONTEXTO.
-    2. Si la respuesta no se encuentra en el CONTEXTO, debes indicar: "La información específica no se encuentra en el manual de acreditación proporcionado."
+    # SIMULACIÓN: En este modo, la IA no busca en la base de datos, sino que usa respuestas predefinidas
+    #             para demostrar el potencial RAG.
 
-    CONTEXTO:
-    {context}
+    # Esta sección simula la Generación (Generation)
     
-    PREGUNTA DEL USUARIO: "{query}"
-    
-    RESPUESTA:
-    """
-
-    # --- SIMULACIÓN DE LA RESPUESTA DEL LLM ---
-    # Por limitaciones de hardware en el entorno gratuito, no podemos correr Llama 3.
-    # Usamos una simulación que refleja el comportamiento RAG.
-    
+    # ----------------------------------------------------
+    # Respuestas de simulación basadas en el manual:
+    # ----------------------------------------------------
     if "requisitos de acreditación" in query.lower() or "requisitos eecc" in query.lower():
-        # Simula una respuesta sintetizada y precisa, como la que dio la IA previamente
+        # Simula una respuesta sintetizada y precisa sobre los requisitos de EECC (pág. 5)
         respuesta = """
-        Los requisitos de acreditación de Empresas Colaboradoras (EECC) incluyen documentos listados en la página 5, como Contrato de Servicio, Carta de Inicio de Actividades, Certificado Ley 16.744, y Programa de Trabajo SSO. 
-        Adicionalmente, el proceso requiere elementos mencionados en la sección de Actividades Previas, como el envío del **Formulario Instructivo de Administración de Usuarios y Perfiles del Sistema** (Anexo 1) para gestionar el usuario SIGA, y la acreditación personal del Administrador de Contrato (ADC).
+        Los **requisitos de acreditación de Empresas Colaboradoras (EECC)** son 10 y deben cargarse en el sistema SIGA. Estos incluyen:
+        
+        1. **Contrato de Servicio**
+        2. **Carta de Inicio de Actividades (Sernageomin)**
+        3. **Certificado Ley 16.744**
+        4. **Declaración Representante Legal** (debe ser legalizada ante Notario)
+        5. **Jornada Excepcional de Trabajo** (o Declaración Simple de no tenerla)
+        6. **Programa de Trabajo SSO**
+        7. **Matriz de Riesgo**
+        8. **Estrategias de Control Salud y Seguridad Ocupacional**
+        9. **Procedimiento de Emergencia**
+        10. **Reunión de Arranque**
+        
+        [cite_start]Adicionalmente, antes de iniciar la acreditación, la EECC debe gestionar su usuario en plataforma SIGA[cite: 71, 74].
         """
+        context = "Contexto simulado: Requisitos de Acreditación EECC de la página 5 del manual."
         
     elif "usuario en plataforma siga" in query.lower():
-        respuesta = f"""
-        [cite_start]Para gestionar el **usuario y contraseña en la plataforma SIGA**, la EECC debe enviar un correo al Administrador del Contrato de MLP (ADC MLP) asignado, adjuntando el **Formulario Instructivo de Administración de Usuarios y Perfiles del Sistema**, que se encuentra en el Anexo 1 del documento[cite: 34]. [cite_start]El Administrador de Contrato de la EECC recibirá las credenciales por correo electrónico[cite: 37].
+        # Simula una respuesta sobre la gestión de usuario SIGA (pág. 3)
+        respuesta = """
+        Para gestionar el **usuario y contraseña en la plataforma SIGA**, la EECC debe enviar un correo al Administrador del Contrato de MLP (ADC MLP) asignado.
+        Debe adjuntar el **Formulario Instructivo de Administración de Usuarios y Perfiles del Sistema** (Anexo 1). El Administrador MLP firma y solicita la creación del usuario a la mesa de ayuda.
+        [cite_start]Finalmente, el Administrador de Contratos de la EECC recibirá las credenciales por correo electrónico[cite: 33, 34, 37].
         """
+        context = "Contexto simulado: Actividades Previas - Gestión USUARIO en plataforma SIGA (pág. 3)."
         
     else:
-        # En caso de otra pregunta, simplemente muestra el contexto recuperado
-        respuesta = f"**[Respuesta LLM Simulado - Basado en Contexto]**\n\n**Contexto Recuperado:**\n\n{context}\n\n**Respuesta:** La IA usaría el contexto anterior para generar la respuesta. Por favor, considera el contexto para validar la información."
+        # Respuesta por defecto para cualquier otra pregunta
+        respuesta = """
+        **[Modo Piloto de Simulación]**
+        
+        El modelo ha identificado que esta es una consulta fuera de los ejemplos clave programados para la demostración.
+        
+        En una implementación real (con la base de conocimiento cargada), el sistema:
+        1. Buscaría en tu manual de 42 páginas.
+        2. Usaría Llama 3 para generar una respuesta concisa y precisa basada **solo** en el contenido encontrado.
+        
+        Por favor, prueba con una de las preguntas clave (Ej: "¿Cuáles son los requisitos de acreditación de EECC?") para ver el resultado de la simulación.
+        """
+        context = "No se recuperó contexto en el modo simulación para esta pregunta."
+
 
     # Muestra el contexto para debug y validación
     st.markdown("---")
-    with st.expander("Ver Contexto Recuperado por RAG (para validación)"):
-        st.caption("Fragmentos del manual utilizados por la IA para generar la respuesta:")
+    with st.expander("Ver Simulación de Contexto RAG (para validación)"):
+        st.caption("Esta es la simulación del fragmento que la IA habría usado:")
         st.code(context, language='text')
     st.markdown("---")
     
@@ -112,4 +114,5 @@ if st.button("Consultar Manual") and user_query:
         response = run_rag_query(user_query)
         st.markdown(f"### Respuesta del Piloto:")
         st.markdown(response)
+
 
