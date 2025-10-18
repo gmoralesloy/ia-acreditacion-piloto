@@ -1,6 +1,7 @@
 streamlit
+langchain
+langchain-community
 chromadb
-transformers
 sentence-transformers
-numpy
-pandas
+pypdf
+ollama
